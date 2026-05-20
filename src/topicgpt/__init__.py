@@ -10,6 +10,7 @@ hierarchy.
 
 from __future__ import annotations
 
+from topicgpt import evaluation
 from topicgpt.clustering import (
     AgglomerativeClusterer,
     Clusterer,
@@ -98,5 +99,6 @@ __all__ = [
     "UMAPReducer",
     "VectorizationError",
     "__version__",
+    "evaluation",
     "make_topic",
 ]
