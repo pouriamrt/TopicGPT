@@ -42,7 +42,15 @@ from topicgpt.exceptions import (
     VectorizationError,
 )
 from topicgpt.reduction import DimReducer, PCAReducer, UMAPReducer
+from topicgpt.representation import (
+    KeyBERTRepresenter,
+    LLMRepresenter,
+    Representer,
+    TopicCandidate,
+    TopicLabel,
+)
 from topicgpt.topic import OUTLIER_ID, Topic, make_topic
+from topicgpt.vectorization import CosineSimilarityScorer, CTFIDFVectorizer, TopicVectorizer
 
 __version__ = "1.0.0a0"
 
@@ -51,9 +59,11 @@ __all__ = [
     "AgglomerativeClusterer",
     "AgglomerativeConfig",
     "CTFIDFConfig",
+    "CTFIDFVectorizer",
     "Clusterer",
     "ClusteringError",
     "ConfigurationError",
+    "CosineSimilarityScorer",
     "DimReducer",
     "Embedder",
     "EmbeddingError",
@@ -62,7 +72,9 @@ __all__ = [
     "KMeansClusterer",
     "KMeansConfig",
     "KeyBERTRepresentationConfig",
+    "KeyBERTRepresenter",
     "LLMRepresentationConfig",
+    "LLMRepresenter",
     "LLMResponseError",
     "OpenAIEmbedder",
     "OpenAIEmbeddingConfig",
@@ -71,11 +83,15 @@ __all__ = [
     "PersistenceError",
     "ReductionError",
     "RepresentationError",
+    "Representer",
     "SBERTEmbedder",
     "SBERTEmbeddingConfig",
     "Settings",
     "Topic",
+    "TopicCandidate",
     "TopicGPTError",
+    "TopicLabel",
+    "TopicVectorizer",
     "UMAPConfig",
     "UMAPReducer",
     "VectorizationError",
