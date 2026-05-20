@@ -1,6 +1,6 @@
 """OpenAI embedding back-end.
 
-Uses ``text-embedding-3-large`` by default. Batches requests, retries
+Uses ``text-embedding-3-small`` by default. Batches requests, retries
 transient failures, and optionally caches vectors on disk so re-runs over the
 same corpus are free.
 """

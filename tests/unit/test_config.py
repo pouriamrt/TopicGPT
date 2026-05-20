@@ -50,9 +50,9 @@ def test_settings_frozen() -> None:
 
 
 @pytest.mark.unit
-def test_openai_embedding_defaults_to_gpt5_era_model() -> None:
+def test_openai_embedding_default_model() -> None:
     c = OpenAIEmbeddingConfig()
-    assert c.model == "text-embedding-3-large"
+    assert c.model == "text-embedding-3-small"
     assert c.dimensions is None
     assert c.batch_size == 256
 

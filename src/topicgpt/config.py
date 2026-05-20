@@ -54,7 +54,7 @@ class _FrozenModel(BaseModel):
 class OpenAIEmbeddingConfig(_FrozenModel):
     """OpenAI embedding model parameters."""
 
-    model: str = "text-embedding-3-large"
+    model: str = "text-embedding-3-small"
     dimensions: int | None = Field(
         default=None,
         ge=64,

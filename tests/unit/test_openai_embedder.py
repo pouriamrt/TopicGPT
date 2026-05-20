@@ -50,7 +50,7 @@ def _build_embedder(
         dim=dimensions or 4,
     )
     cfg = OpenAIEmbeddingConfig(
-        model="text-embedding-3-large",
+        model="text-embedding-3-small",
         batch_size=batch_size,
         dimensions=dimensions,
     )
@@ -64,7 +64,7 @@ def _build_embedder(
 @pytest.mark.unit
 def test_default_model_is_text_embedding_3_large() -> None:
     emb, _ = _build_embedder(dimensions=64)
-    assert emb.model_name == "text-embedding-3-large"
+    assert emb.model_name == "text-embedding-3-small"
 
 
 @pytest.mark.unit

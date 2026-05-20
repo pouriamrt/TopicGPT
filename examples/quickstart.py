@@ -32,7 +32,7 @@ DOCUMENTS = [
 
 def main() -> None:
     model = TopicModel(
-        embedder=OpenAIEmbedder(),  # defaults to text-embedding-3-large
+        embedder=OpenAIEmbedder(),  # defaults to text-embedding-3-small
         reducer=UMAPReducer(),
         clusterer=HDBSCANClusterer(HDBSCANConfig(min_cluster_size=2)),
         vectorizer=CTFIDFVectorizer(),

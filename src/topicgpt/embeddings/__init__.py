@@ -2,7 +2,7 @@
 
 Public surface:
     - :class:`Embedder` protocol
-    - :class:`OpenAIEmbedder` (default; ``text-embedding-3-large``)
+    - :class:`OpenAIEmbedder` (default; ``text-embedding-3-small``)
     - :class:`SBERTEmbedder` (offline alternative)
 """
 

@@ -1,6 +1,6 @@
 # TopicGPT
 
-> Modular LLM-driven topic modelling. Embed → reduce → cluster → vectorize → represent → label. OpenAI-latest defaults (`gpt-5.4-mini` for chat, `text-embedding-3-large` for embeddings).
+> Modular LLM-driven topic modelling. Embed → reduce → cluster → vectorize → represent → label. OpenAI-latest defaults (`gpt-5.4-mini` for chat, `text-embedding-3-small` for embeddings).
 
 **Status:** v1.0 rewrite in progress. See [PLAN.md](./PLAN.md) for the phased roadmap.
 
@@ -31,7 +31,7 @@ pip install topicgpt
 from topicgpt import TopicModel
 
 model = TopicModel.from_config(
-    embed="openai:text-embedding-3-large",
+    embed="openai:text-embedding-3-small",
     reduce="umap",
     cluster="hdbscan",
     represent=["ctfidf", "llm:gpt-5.4-mini"],

@@ -1,6 +1,6 @@
 # TopicGPT v1.0 — Modernization Plan
 
-> Full rewrite, BERTopic-style modular pipeline, OpenAI-latest defaults (`gpt-5.4-mini` for chat, `text-embedding-3-large` for embeddings), evaluation suite, Pydantic-typed structured outputs. Python 3.13. uv-managed.
+> Full rewrite, BERTopic-style modular pipeline, OpenAI-latest defaults (`gpt-5.4-mini` for chat, `text-embedding-3-small` for embeddings), evaluation suite, Pydantic-typed structured outputs. Python 3.13. uv-managed.
 
 ## Goals
 
@@ -35,7 +35,7 @@ topicgpt/
 │   ├── pipeline.py         # TopicModel orchestrator
 │   ├── embeddings/
 │   │   ├── base.py         # Embedder Protocol
-│   │   ├── openai.py       # text-embedding-3-large, batched, cached
+│   │   ├── openai.py       # text-embedding-3-small, batched, cached
 │   │   └── sbert.py        # sentence-transformers fallback
 │   ├── reduction/
 │   │   ├── base.py         # DimReducer Protocol
@@ -79,7 +79,7 @@ topicgpt/
 from topicgpt import TopicModel, OpenAIConfig
 
 model = TopicModel.from_config(
-    embed="openai:text-embedding-3-large",
+    embed="openai:text-embedding-3-small",
     reduce="umap",
     cluster="hdbscan",
     represent=["ctfidf", "llm:gpt-5.4-mini"],
@@ -134,7 +134,7 @@ Each phase = one PR-sized chunk with explicit acceptance criteria. Gate = `ruff 
 ### Phase 3 — Embedding layer
 **Files**: `embeddings/{base,openai,sbert}.py`, tests.
 - `Embedder` Protocol: `embed(texts: Sequence[str]) -> NDArray[float32]`, `dim: int`.
-- `OpenAIEmbedder`: default `text-embedding-3-large`, configurable `dimensions`, batched (max 2048 per request), retries via tenacity, optional on-disk cache (hishel keyed by hash(text, model, dim)).
+- `OpenAIEmbedder`: default `text-embedding-3-small`, configurable `dimensions`, batched (max 2048 per request), retries via tenacity, optional on-disk cache (hishel keyed by hash(text, model, dim)).
 - `SBERTEmbedder`: wraps sentence-transformers, default `BAAI/bge-large-en-v1.5`.
 - **Accept**: unit tests with mocked OpenAI client; cache hit/miss test; batching boundary test.
 

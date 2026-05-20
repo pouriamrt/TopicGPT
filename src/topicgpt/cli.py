@@ -74,7 +74,7 @@ def fit(
     n_topics: Annotated[int | None, typer.Option(help="Force fixed number of topics.")] = None,
     embedding_model: Annotated[
         str, typer.Option(help="OpenAI embedding model.")
-    ] = "text-embedding-3-large",
+    ] = "text-embedding-3-small",
     embedding_dim: Annotated[int | None, typer.Option(help="Output dim override.")] = None,
 ) -> None:
     """Train a TopicModel and persist it to disk."""

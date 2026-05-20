@@ -7,7 +7,7 @@
 | | v0.0.6 | v1.0 |
 |---|---|---|
 | Chat model | `gpt-3.5-turbo-16k` (retired) | `gpt-5.4-mini` |
-| Embedding model | `text-embedding-ada-002` (retired) | `text-embedding-3-large` |
+| Embedding model | `text-embedding-ada-002` (retired) | `text-embedding-3-small` |
 | Python | 3.11 | **3.13** |
 | Build | `setuptools` + `setup.py` | `hatchling` + `pyproject.toml` (uv-managed) |
 | LLM I/O | free-text completions | Pydantic structured outputs (`responses.parse`) |
@@ -62,7 +62,7 @@ from topicgpt import (
 )
 
 tm = TopicModel(
-    embedder=OpenAIEmbedder(OpenAIEmbeddingConfig(model="text-embedding-3-large")),
+    embedder=OpenAIEmbedder(OpenAIEmbeddingConfig(model="text-embedding-3-small")),
     reducer=UMAPReducer(),
     clusterer=KMeansClusterer(KMeansConfig(n_clusters=20)),
     vectorizer=CTFIDFVectorizer(),
