@@ -113,6 +113,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["D", "ANN", "S101"]
 "examples/**/*.py" = ["D", "ANN", "T201"]
+# Typer evaluates Annotated[Path, ...] at runtime, so we can't hide the
+# import behind TYPE_CHECKING.
+"src/topicgpt/cli.py" = ["TC001", "TC003"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
