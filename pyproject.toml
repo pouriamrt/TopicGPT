@@ -1,3 +1,185 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "topicgpt"
+version = "1.0.0a0"
+description = "Modular LLM-driven topic modelling: embed → reduce → cluster → vectorize → represent → label."
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [{ name = "Pouria Mortezaagha" }]
+keywords = ["topic-modelling", "llm", "openai", "gpt-5", "bertopic", "nlp", "embeddings"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    # LLM + embeddings
+    "openai>=1.55",
+    "tiktoken>=0.8",
+    # Modeling stack
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+    "umap-learn>=0.5.6",
+    "hdbscan>=0.8.40",
+    "sentence-transformers>=3.0",
+    # Eval
+    "gensim>=4.3",
+    "nltk>=3.9",
+    # Config + validation
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    # HTTP cache for embeddings
+    "hishel>=0.0.33",
+    "httpx>=0.27",
+    # CLI / UX
+    "typer>=0.13",
+    "tqdm>=4.67",
+    "rich>=13.9",
+    # Viz
+    "plotly>=5.24",
+    # Persistence
+    "joblib>=1.4",
+    # Resilience
+    "tenacity>=9.0",
+]
+
+[project.optional-dependencies]
+viz-extras = ["umap-learn[plot]>=0.5.6", "matplotlib>=3.9", "seaborn>=0.13"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "pytest-mock>=3.14",
+    "hypothesis>=6.115",
+    "bandit>=1.7",
+    "types-tqdm",
+]
+
+[project.scripts]
+topicgpt = "topicgpt.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/pouriamortezaagha/topicgpt"
+Issues = "https://github.com/pouriamortezaagha/topicgpt/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/topicgpt"]
+
+# ---------- ruff ----------
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+extend-exclude = ["legacy", "examples/**/*.ipynb"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F",
+    "I",
+    "B",
+    "UP",
+    "SIM",
+    "RUF",
+    "N",
+    "PT",
+    "D",
+    "ANN",
+    "TCH",
+    "PIE",
+    "TRY",
+    "C4",
+    "PERF",
+]
+ignore = [
+    "D100", "D104", "D107",
+    "D203", "D213",
+    "TRY003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D", "ANN", "S101"]
+"examples/**/*.py" = ["D", "ANN", "T201"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ---------- mypy ----------
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+disallow_any_generics = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_return_any = true
+files = ["src/topicgpt"]
+
+[[tool.mypy.overrides]]
+module = [
+    "umap.*",
+    "hdbscan.*",
+    "gensim.*",
+    "nltk.*",
+    "sentence_transformers.*",
+    "plotly.*",
+    "joblib.*",
+    "hishel.*",
+]
+ignore_missing_imports = true
+
+# ---------- pytest ----------
+[tool.pytest.ini_options]
+minversion = "8.3"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src/topicgpt",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+]
+testpaths = ["tests"]
+markers = [
+    "unit: unit tests (fast, no I/O)",
+    "integration: integration tests (slower)",
+    "live: hits real OpenAI API (skip in CI)",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:umap.*",
+    "ignore::DeprecationWarning:hdbscan.*",
+    "ignore::DeprecationWarning:gensim.*",
+]
+
+[tool.coverage.run]
+source = ["src/topicgpt"]
+branch = true
+omit = ["src/topicgpt/cli.py", "src/topicgpt/visualize/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "\\.\\.\\.",
+]
