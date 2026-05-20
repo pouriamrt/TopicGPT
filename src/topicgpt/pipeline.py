@@ -309,6 +309,7 @@ class _NoEmbedder:
     dim = 0
 
     def embed(self, _texts: Sequence[str]) -> NDArray[np.float32]:
+        """Raise — this sentinel has no model behind it."""
         raise TopicGPTError(
             "This model was loaded without an embedder. Pass embedder=... to load() "
             "before calling transform()/find_topics()."
