@@ -10,13 +10,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
+from topicgpt._math import cosine_similarity
 from topicgpt.exceptions import VectorizationError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    import numpy as np
     from numpy.typing import NDArray
 
 
@@ -41,15 +41,7 @@ class CosineSimilarityScorer:
                 f"vocab_embeddings rows {vocab_embeddings.shape[0]} != vocab len {len(vocab)}"
             )
 
-        c_norm = _l2_normalize(centroids)
-        v_norm = _l2_normalize(vocab_embeddings)
-        scores = c_norm @ v_norm.T  # (T, V)
-        return scores.astype(np.float32, copy=False), list(vocab)
-
-
-def _l2_normalize(X: NDArray[np.float32]) -> NDArray[np.float32]:
-    norms = np.linalg.norm(X, axis=1, keepdims=True)
-    return np.asarray(X / np.maximum(norms, 1e-12), dtype=np.float32)
+        return cosine_similarity(centroids, vocab_embeddings), list(vocab)
 
 
 __all__ = ["CosineSimilarityScorer"]

@@ -6,15 +6,15 @@ returns mean / std per metric.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
+from statistics import fmean, stdev
 from typing import TYPE_CHECKING
 
 from topicgpt.evaluation.coherence import npmi, umass
 from topicgpt.evaluation.diversity import inverted_rbo, proportion_unique_words
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Sequence
+    from collections.abc import Callable, Sequence
 
     from topicgpt.pipeline import TopicModel
 
@@ -64,23 +64,9 @@ def run_bench(
         per_run.append(scores)
 
     keys = sorted({k for r in per_run for k in r})
-    means = {k: _mean(r[k] for r in per_run) for k in keys}
-    stds = {k: _stdev(r[k] for r in per_run) for k in keys}
+    means = {k: float(fmean(r[k] for r in per_run)) for k in keys}
+    stds = {k: float(stdev(r[k] for r in per_run)) if len(per_run) > 1 else 0.0 for k in keys}
     return BenchResult(metrics=means, stds=stds, per_run=per_run)
-
-
-def _mean(values: Iterable[float]) -> float:
-    xs = list(values)
-    return float(sum(xs) / len(xs)) if xs else 0.0
-
-
-def _stdev(values: Iterable[float]) -> float:
-    xs = list(values)
-    if len(xs) < 2:
-        return 0.0
-    m = sum(xs) / len(xs)
-    var = sum((x - m) ** 2 for x in xs) / (len(xs) - 1)
-    return float(math.sqrt(var))
 
 
 __all__ = ["BenchResult", "run_bench"]

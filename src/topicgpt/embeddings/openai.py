@@ -12,29 +12,23 @@ from typing import TYPE_CHECKING, Protocol, cast
 
 import numpy as np
 import tiktoken
-from openai import APIConnectionError, APIError, OpenAI, RateLimitError
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
+from topicgpt._openai_common import RETRYABLE_ERRORS, build_openai_client, with_openai_retry
 from topicgpt.config import OpenAIEmbeddingConfig, Settings
 from topicgpt.embeddings._cache import EmbeddingCache
-from topicgpt.exceptions import ConfigurationError, EmbeddingError
+from topicgpt.exceptions import EmbeddingError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
     from numpy.typing import NDArray
+    from openai import OpenAI
 
 _LOG = logging.getLogger(__name__)
 
 # OpenAI hard limit per /v1/embeddings request.
 _MAX_BATCH_PER_REQUEST = 2048
-_RETRYABLE_ERRORS = (APIConnectionError, RateLimitError, APIError)
 
 
 class _EmbeddingDatum(Protocol):
@@ -71,7 +65,7 @@ class OpenAIEmbedder:
         """
         self.config = config or OpenAIEmbeddingConfig()
         self.settings = settings or Settings()
-        self._client = client or self._build_client()
+        self._client = client or build_openai_client(self.settings)
         self._cache = (
             EmbeddingCache(cache_dir, model=self.config.model, dim=self.config.dimensions)
             if cache_dir is not None
@@ -82,9 +76,6 @@ class OpenAIEmbedder:
             self._tokenizer = tiktoken.encoding_for_model(self.config.model)
         except KeyError:
             self._tokenizer = tiktoken.get_encoding("cl100k_base")
-
-    # ------------------------------------------------------------------
-    # Properties
 
     @property
     def dim(self) -> int:
@@ -100,16 +91,12 @@ class OpenAIEmbedder:
         """Underlying OpenAI model id."""
         return self.config.model
 
-    # ------------------------------------------------------------------
-    # Public API
-
     def embed(self, texts: Sequence[str]) -> NDArray[np.float32]:
         """Encode ``texts`` and return a ``(len(texts), dim)`` float32 array."""
         if not texts:
             raise EmbeddingError("Cannot embed an empty sequence.")
 
         prepared = [self._prepare(t) for t in texts]
-
         cached, miss_idx, miss_texts = self._lookup_cache(prepared)
 
         if miss_texts:
@@ -122,20 +109,6 @@ class OpenAIEmbedder:
         stacked = np.vstack(cast("list[NDArray[np.float32]]", cached))
         self._dim = stacked.shape[1]
         return stacked.astype(np.float32, copy=False)
-
-    # ------------------------------------------------------------------
-    # Internals
-
-    def _build_client(self) -> OpenAI:
-        if self.settings.openai_api_key is None:
-            raise ConfigurationError(
-                "OPENAI_API_KEY is not set. Provide one via env or pass a client= argument."
-            )
-        return OpenAI(
-            api_key=self.settings.openai_api_key.get_secret_value(),
-            timeout=self.settings.request_timeout_s,
-            max_retries=0,  # we handle retries ourselves
-        )
 
     def _prepare(self, text: str) -> str:
         """Truncate ``text`` to ``max_tokens_per_input`` tokens."""
@@ -156,7 +129,6 @@ class OpenAIEmbedder:
         self,
         texts: Sequence[str],
     ) -> tuple[list[NDArray[np.float32] | None], list[int], list[str]]:
-        """Return (slots, miss_indices, miss_texts)."""
         slots: list[NDArray[np.float32] | None] = [None] * len(texts)
         if self._cache is None:
             return slots, list(range(len(texts))), list(texts)
@@ -183,7 +155,7 @@ class OpenAIEmbedder:
     def _embed_one_batch(self, batch: list[str]) -> list[NDArray[np.float32]]:
         try:
             response = self._call_api(batch)
-        except _RETRYABLE_ERRORS as e:
+        except RETRYABLE_ERRORS as e:
             raise EmbeddingError(f"OpenAI embeddings call failed: {e}") from e
 
         # OpenAI returns items in input order regardless of payload size.
@@ -195,19 +167,13 @@ class OpenAIEmbedder:
         if self.config.dimensions is not None:
             kwargs["dimensions"] = self.config.dimensions
 
-        @retry(
-            retry=retry_if_exception_type(_RETRYABLE_ERRORS),
-            wait=wait_exponential(multiplier=1, min=1, max=20),
-            stop=stop_after_attempt(self.settings.max_retries + 1),
-            reraise=True,
-        )
         def _do() -> _EmbeddingResponse:
             return cast(
                 "_EmbeddingResponse",
                 self._client.embeddings.create(**kwargs),  # type: ignore[arg-type]
             )
 
-        return _do()
+        return with_openai_retry(self.settings, _do)
 
 
 __all__ = ["OpenAIEmbedder"]

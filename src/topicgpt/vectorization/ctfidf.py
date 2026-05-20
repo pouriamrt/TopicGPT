@@ -7,6 +7,7 @@ TF-IDF is then computed over the class-corpus. This favours words that are
 
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -47,11 +48,13 @@ class CTFIDFVectorizer:
         if not topic_ids:
             raise VectorizationError("No non-outlier topics found")
 
-        # 1. concatenate documents per topic into class-docs
-        class_docs = [
-            " ".join(d for d, t in zip(documents, labels, strict=True) if int(t) == tid)
-            for tid in topic_ids
-        ]
+        # Single pass over the corpus instead of T full scans.
+        buckets: dict[int, list[str]] = defaultdict(list)
+        for d, t in zip(documents, labels, strict=True):
+            tid = int(t)
+            if tid != OUTLIER_ID:
+                buckets[tid].append(d)
+        class_docs = [" ".join(buckets[tid]) for tid in topic_ids]
 
         # 2. count terms in class corpus
         cv = CountVectorizer(
@@ -65,16 +68,14 @@ class CTFIDFVectorizer:
             raise VectorizationError(f"CountVectorizer failed: {e}") from e
         vocab: list[str] = list(cv.get_feature_names_out())
 
-        # 3. class-based TF-IDF
         tf = counts / np.maximum(counts.sum(axis=1, keepdims=True), 1.0)
-        # average words per class
         avg = float(counts.sum() / counts.shape[0]) if counts.shape[0] else 1.0
         word_freq = counts.sum(axis=0)  # term freq across all classes
-        idf = np.log(1.0 + avg / np.maximum(word_freq, 1.0))
-
         if self.config.bm25_weighting:
-            # mimic BERTopic's BM25-style stabilisation
+            # BERTopic's BM25-style stabilisation
             idf = np.log((1.0 + avg) / (1.0 + np.maximum(word_freq, 1.0))) + 1.0
+        else:
+            idf = np.log(1.0 + avg / np.maximum(word_freq, 1.0))
 
         scores = tf * idf  # broadcast (T, V) * (V,) → (T, V)
 

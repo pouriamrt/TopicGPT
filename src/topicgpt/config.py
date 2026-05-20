@@ -149,7 +149,7 @@ class LLMRepresentationConfig(_FrozenModel):
     temperature: float | None = Field(default=None, ge=0.0, le=2.0)
     max_output_tokens: int = Field(default=512, ge=64, le=8192)
     n_representative_docs: int = Field(default=4, ge=0, le=20)
-    n_top_words: int = Field(default=10, ge=1, le=50)
+    top_n_words: int = Field(default=10, ge=1, le=50)
     system_prompt: str | None = None
     corpus_instruction: str = ""
 

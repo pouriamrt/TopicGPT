@@ -99,8 +99,8 @@ def test_visualize_barchart_has_one_trace_per_topic(fitted_model: TopicModel) ->
 def test_visualize_hierarchy_returns_figure(fitted_model: TopicModel) -> None:
     fig = visualize_hierarchy(fitted_model)
     assert isinstance(fig, go.Figure)
-    # 2 topics -> 1 merge -> 3 line segments
-    assert len(fig.data) >= 3
+    # 2 topics -> 1 U-link from scipy.dendrogram -> 1 Scatter trace.
+    assert len(fig.data) >= 1
 
 
 @pytest.mark.unit

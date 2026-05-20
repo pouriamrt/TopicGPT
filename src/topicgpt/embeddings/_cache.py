@@ -36,11 +36,9 @@ class EmbeddingCache:
     def get(self, text: str) -> NDArray[np.float32] | None:
         """Return cached vector or ``None`` on miss."""
         path = self._path(self._key(text))
-        if not path.exists():
-            return None
         try:
             arr = np.load(path)
-        except (OSError, ValueError):
+        except (FileNotFoundError, OSError, ValueError):
             return None
         return np.asarray(arr, dtype=np.float32)
 

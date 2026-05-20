@@ -50,10 +50,15 @@ class Topic:
     meta: Mapping[str, object] = field(default_factory=dict, hash=False, compare=False)
 
     def __post_init__(self) -> None:
-        """Validate invariants after dataclass init."""
-        if len(self.keywords) != len(self.keyword_scores):
+        """Validate invariants after dataclass init.
+
+        ``keyword_scores`` may be empty (meaning "no scores available", e.g.
+        when the LLM rewrites keywords). When non-empty it must align 1:1
+        with ``keywords``.
+        """
+        if self.keyword_scores and len(self.keywords) != len(self.keyword_scores):
             raise ValueError(
-                f"keywords and keyword_scores must have equal length; "
+                f"keywords and keyword_scores must have equal length when both set; "
                 f"got {len(self.keywords)} vs {len(self.keyword_scores)}"
             )
         if self.size < 0:

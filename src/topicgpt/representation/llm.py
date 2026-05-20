@@ -8,27 +8,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-from openai import APIConnectionError, APIError, OpenAI, RateLimitError
 from pydantic import ValidationError
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
+from topicgpt._openai_common import RETRYABLE_ERRORS, build_openai_client, with_openai_retry
 from topicgpt.config import LLMRepresentationConfig, Settings
-from topicgpt.exceptions import ConfigurationError, LLMResponseError, RepresentationError
+from topicgpt.exceptions import LLMResponseError, RepresentationError
 from topicgpt.representation.schemas import TopicLabel
 from topicgpt.topic import Topic, make_topic
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from openai import OpenAI
+
     from topicgpt.representation.base import TopicCandidate
 
-
-_RETRYABLE_ERRORS = (APIConnectionError, RateLimitError, APIError)
 
 _DEFAULT_SYSTEM_PROMPT = (
     "You are a topic-modelling assistant. Given representative keywords and "
@@ -52,7 +46,7 @@ class LLMRepresenter:
     ) -> None:
         self.config = config or LLMRepresentationConfig()
         self.settings = settings or Settings()
-        self._client = client or self._build_client()
+        self._client = client or build_openai_client(self.settings)
 
     @property
     def model_name(self) -> str:
@@ -60,18 +54,22 @@ class LLMRepresenter:
         return self.config.model
 
     def represent(self, candidates: Sequence[TopicCandidate]) -> list[Topic]:
-        """Label each candidate via the LLM and return enriched topics."""
+        """Label each candidate via the LLM and return enriched topics.
+
+        ``keyword_scores`` is intentionally empty on the returned topics: the
+        LLM rewrites the keyword list, so prior representers' scores no longer
+        align. Pair with KeyBERT/c-TF-IDF if you need ranked scores.
+        """
         out: list[Topic] = []
         for cand in candidates:
             label = self._label_one(cand)
-            kw_scores = _pad_or_truncate(cand.keyword_scores, len(label.keywords))
             out.append(
                 make_topic(
                     cand.topic_id,
                     label=label.label,
                     description=label.description,
                     keywords=tuple(label.keywords),
-                    keyword_scores=kw_scores,
+                    keyword_scores=(),
                     representative_docs=cand.representative_docs,
                     size=cand.size,
                     meta={"llm_model": self.config.model},
@@ -79,54 +77,26 @@ class LLMRepresenter:
             )
         return out
 
-    # ------------------------------------------------------------------
-    # Internals
-
-    def _build_client(self) -> OpenAI:
-        if self.settings.openai_api_key is None:
-            raise ConfigurationError("OPENAI_API_KEY is required for LLMRepresenter.")
-        return OpenAI(
-            api_key=self.settings.openai_api_key.get_secret_value(),
-            timeout=self.settings.request_timeout_s,
-            max_retries=0,
-        )
-
     def _label_one(self, cand: TopicCandidate) -> TopicLabel:
         prompt = self._build_prompt(cand)
+        kwargs: dict[str, object] = {
+            "model": self.config.model,
+            "input": cast("Any", prompt),
+            "text_format": TopicLabel,
+            "max_output_tokens": self.config.max_output_tokens,
+        }
+        if self.config.temperature is not None:
+            kwargs["temperature"] = self.config.temperature
 
-        @retry(
-            retry=retry_if_exception_type(_RETRYABLE_ERRORS),
-            wait=wait_exponential(multiplier=1, min=1, max=20),
-            stop=stop_after_attempt(self.settings.max_retries + 1),
-            reraise=True,
-        )
         def _call() -> TopicLabel:
             try:
-                # The OpenAI SDK uses tightly-typed TypedDicts for `input`;
-                # our generic role/content dicts conform structurally so we
-                # cast to keep mypy quiet without losing runtime validation.
-                api_input = cast("Any", prompt)
-                if self.config.temperature is None:
-                    rsp = self._client.responses.parse(
-                        model=self.config.model,
-                        input=api_input,
-                        text_format=TopicLabel,
-                        max_output_tokens=self.config.max_output_tokens,
-                    )
-                else:
-                    rsp = self._client.responses.parse(
-                        model=self.config.model,
-                        input=api_input,
-                        text_format=TopicLabel,
-                        max_output_tokens=self.config.max_output_tokens,
-                        temperature=self.config.temperature,
-                    )
-            except _RETRYABLE_ERRORS:
+                rsp = self._client.responses.parse(**kwargs)  # type: ignore[arg-type]
+            except RETRYABLE_ERRORS:
                 raise
             except Exception as e:
                 raise LLMResponseError(f"LLM call failed: {e}") from e
 
-            parsed = getattr(rsp, "output_parsed", None)
+            parsed: object = rsp.output_parsed
             if parsed is None:
                 raise LLMResponseError("LLM response missing parsed payload")
             try:
@@ -135,8 +105,8 @@ class LLMRepresenter:
                 raise LLMResponseError(f"LLM returned invalid schema: {e}") from e
 
         try:
-            return _call()
-        except _RETRYABLE_ERRORS as e:
+            return with_openai_retry(self.settings, _call)
+        except RETRYABLE_ERRORS as e:
             raise RepresentationError(f"LLM call exhausted retries: {e}") from e
 
     def _build_prompt(self, cand: TopicCandidate) -> list[dict[str, str]]:
@@ -144,7 +114,7 @@ class LLMRepresenter:
         if self.config.corpus_instruction:
             sys = f"{sys}\n\nCorpus context: {self.config.corpus_instruction}"
 
-        kws = ", ".join(cand.keywords[: self.config.n_top_words]) or "(none)"
+        kws = ", ".join(cand.keywords[: self.config.top_n_words]) or "(none)"
         docs = "\n\n---\n".join(cand.representative_docs[: self.config.n_representative_docs])
         if not docs:
             docs = "(no representative documents)"
@@ -158,13 +128,6 @@ class LLMRepresenter:
             {"role": "system", "content": sys},
             {"role": "user", "content": user},
         ]
-
-
-def _pad_or_truncate(scores: tuple[float, ...], n: int) -> tuple[float, ...]:
-    """Right-pad with 0.0 or truncate so the result has exactly ``n`` items."""
-    if len(scores) >= n:
-        return tuple(scores[:n])
-    return scores + (0.0,) * (n - len(scores))
 
 
 __all__ = ["LLMRepresenter"]

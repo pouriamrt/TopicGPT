@@ -109,15 +109,15 @@ def umass(
     sets = _doc_term_sets(documents)
     flat_words = {w.lower() for topic in topics for w in topic[:top_n]}
     term_counts: Counter[str] = Counter()
+    # Canonical key (sorted pair) — half the work of counting both directions.
     cooc_counts: Counter[tuple[str, str]] = Counter()
     for ds in sets:
-        present = ds & flat_words
+        present = sorted(ds & flat_words)
         for w in present:
             term_counts[w] += 1
-        for w1 in present:
-            for w2 in present:
-                if w1 != w2:
-                    cooc_counts[w1, w2] += 1
+        for i, w1 in enumerate(present):
+            for w2 in present[i + 1 :]:
+                cooc_counts[w1, w2] += 1
 
     scores: list[float] = []
     for topic in topics:
@@ -126,7 +126,8 @@ def umass(
         pairs = 0
         for i in range(1, len(words)):
             for j in range(i):
-                c_xy = cooc_counts.get((words[i], words[j]), 0)
+                key = (min(words[i], words[j]), max(words[i], words[j]))
+                c_xy = cooc_counts.get(key, 0)
                 c_y = term_counts.get(words[j], 0)
                 if c_y == 0:
                     continue

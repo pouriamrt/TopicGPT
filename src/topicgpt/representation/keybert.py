@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from topicgpt._math import cosine_similarity
 from topicgpt.config import KeyBERTRepresentationConfig
 from topicgpt.exceptions import RepresentationError
 from topicgpt.topic import Topic, make_topic
@@ -51,11 +52,32 @@ class KeyBERTRepresenter:
         self._vocab = list(vocab) if vocab is not None else None
         self._word_embeddings = word_embeddings
 
+    def bind(
+        self,
+        *,
+        scores: NDArray[np.float32] | None = None,
+        vocab: Sequence[str] | None = None,
+        word_embeddings: NDArray[np.float32] | None = None,
+    ) -> None:
+        """Attach precomputed scores / vocab / embeddings after construction.
+
+        Public hook used by :class:`TopicModel` to wire the vectorizer output
+        into a representer the caller constructed with no arguments.
+        Only fields not already set on the instance are overwritten.
+        """
+        if self._scores is None and scores is not None:
+            self._scores = scores
+        if self._vocab is None and vocab is not None:
+            self._vocab = list(vocab)
+        if self._word_embeddings is None and word_embeddings is not None:
+            self._word_embeddings = word_embeddings
+
     def represent(self, candidates: Sequence[TopicCandidate]) -> list[Topic]:
         """Return enriched topics with top keywords + scores."""
         if self._scores is None or self._vocab is None:
             raise RepresentationError(
-                "KeyBERTRepresenter needs `scores` and `vocab` (set them in __init__)."
+                "KeyBERTRepresenter needs `scores` and `vocab` "
+                "(pass them to __init__ or call .bind())."
             )
 
         out: list[Topic] = []
@@ -80,22 +102,15 @@ class KeyBERTRepresenter:
         return out
 
     def _pick(self, scores: NDArray[np.float32]) -> tuple[list[int], list[float]]:
-        # 1. take top candidate_pool by raw score
         pool_size = min(self.config.candidate_pool, scores.shape[0])
         pool = np.argpartition(scores, -pool_size)[-pool_size:]
         pool = pool[np.argsort(scores[pool])[::-1]]
 
-        # 2. MMR loop
         if self._word_embeddings is None or self.config.diversity == 0.0:
             picks_arr = pool[: self.config.top_n_words]
-            picks_list: list[int] = [int(i) for i in picks_arr]
-            return picks_list, [float(scores[i]) for i in picks_arr]
+            return [int(i) for i in picks_arr], [float(scores[i]) for i in picks_arr]
 
-        We = self._word_embeddings[pool]
-        norms = np.linalg.norm(We, axis=1, keepdims=True)
-        We_norm = We / np.maximum(norms, 1e-12)
-        sim = We_norm @ We_norm.T  # similarities inside the pool
-
+        sim = cosine_similarity(self._word_embeddings[pool], self._word_embeddings[pool])
         selected_local: list[int] = []
         remaining = list(range(len(pool)))
         lam = 1.0 - self.config.diversity
