@@ -40,15 +40,15 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
-# Project-specific
-SavedEmbeddings/
-Data/
-Embeddings/
-examples_test/
-.topicgpt_cache/
+# Project-specific (legacy paths anchored to repo root)
+/SavedEmbeddings/
+/Data/
+/Embeddings/
+/examples_test/
+/.topicgpt_cache/
 *.pkl
 *.ipynb_checkpoints/
-t.ipynb
+/t.ipynb
 
 # Sentrux
 .sentrux/baseline.json

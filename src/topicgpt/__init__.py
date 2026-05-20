@@ -23,6 +23,7 @@ from topicgpt.config import (
     Settings,
     UMAPConfig,
 )
+from topicgpt.embeddings import Embedder, OpenAIEmbedder, SBERTEmbedder
 from topicgpt.exceptions import (
     ClusteringError,
     ConfigurationError,
@@ -44,17 +45,20 @@ __all__ = [
     "CTFIDFConfig",
     "ClusteringError",
     "ConfigurationError",
+    "Embedder",
     "EmbeddingError",
     "HDBSCANConfig",
     "KMeansConfig",
     "KeyBERTRepresentationConfig",
     "LLMRepresentationConfig",
     "LLMResponseError",
+    "OpenAIEmbedder",
     "OpenAIEmbeddingConfig",
     "PCAConfig",
     "PersistenceError",
     "ReductionError",
     "RepresentationError",
+    "SBERTEmbedder",
     "SBERTEmbeddingConfig",
     "Settings",
     "Topic",
