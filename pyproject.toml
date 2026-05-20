@@ -106,6 +106,8 @@ ignore = [
     "D100", "D104", "D107",
     "D203", "D213",
     "TRY003",
+    # ML convention: matrices are uppercase (X, Y, X_train).
+    "N803", "N806",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -141,6 +143,7 @@ module = [
     "gensim.*",
     "nltk.*",
     "sentence_transformers.*",
+    "sklearn.*",
     "plotly.*",
     "joblib.*",
     "hishel.*",

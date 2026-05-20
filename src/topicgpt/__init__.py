@@ -10,6 +10,12 @@ hierarchy.
 
 from __future__ import annotations
 
+from topicgpt.clustering import (
+    AgglomerativeClusterer,
+    Clusterer,
+    HDBSCANClusterer,
+    KMeansClusterer,
+)
 from topicgpt.config import (
     AgglomerativeConfig,
     CTFIDFConfig,
@@ -35,19 +41,25 @@ from topicgpt.exceptions import (
     TopicGPTError,
     VectorizationError,
 )
+from topicgpt.reduction import DimReducer, PCAReducer, UMAPReducer
 from topicgpt.topic import OUTLIER_ID, Topic, make_topic
 
 __version__ = "1.0.0a0"
 
 __all__ = [
     "OUTLIER_ID",
+    "AgglomerativeClusterer",
     "AgglomerativeConfig",
     "CTFIDFConfig",
+    "Clusterer",
     "ClusteringError",
     "ConfigurationError",
+    "DimReducer",
     "Embedder",
     "EmbeddingError",
+    "HDBSCANClusterer",
     "HDBSCANConfig",
+    "KMeansClusterer",
     "KMeansConfig",
     "KeyBERTRepresentationConfig",
     "LLMRepresentationConfig",
@@ -55,6 +67,7 @@ __all__ = [
     "OpenAIEmbedder",
     "OpenAIEmbeddingConfig",
     "PCAConfig",
+    "PCAReducer",
     "PersistenceError",
     "ReductionError",
     "RepresentationError",
@@ -64,6 +77,7 @@ __all__ = [
     "Topic",
     "TopicGPTError",
     "UMAPConfig",
+    "UMAPReducer",
     "VectorizationError",
     "__version__",
     "make_topic",
