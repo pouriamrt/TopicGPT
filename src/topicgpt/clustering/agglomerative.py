@@ -30,8 +30,7 @@ class AgglomerativeClusterer:
         """Cluster ``X`` into exactly ``n_clusters`` groups."""
         if X.shape[0] < self.config.n_clusters:
             raise ClusteringError(
-                f"Agglomerative needs >= n_clusters={self.config.n_clusters} rows, "
-                f"got {X.shape[0]}"
+                f"Agglomerative needs >= n_clusters={self.config.n_clusters} rows, got {X.shape[0]}"
             )
         model = AgglomerativeClustering(
             n_clusters=self.config.n_clusters,

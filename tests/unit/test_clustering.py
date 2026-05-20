@@ -21,9 +21,7 @@ def _three_blobs(n_per: int = 40, d: int = 8, seed: int = 0) -> tuple[np.ndarray
     blocks: list[np.ndarray] = []
     labels: list[np.ndarray] = []
     for c in range(3):
-        blocks.append(
-            centers[c] + 0.3 * rng.standard_normal((n_per, d)).astype(np.float32)
-        )
+        blocks.append(centers[c] + 0.3 * rng.standard_normal((n_per, d)).astype(np.float32))
         labels.append(np.full(n_per, c, dtype=np.int64))
     return np.vstack(blocks).astype(np.float32), np.concatenate(labels)
 

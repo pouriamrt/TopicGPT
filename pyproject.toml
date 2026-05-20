@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "topicgpt"
-version = "1.0.0a0"
+version = "1.0.0rc1"
 description = "Modular LLM-driven topic modelling: embed → reduce → cluster → vectorize → represent → label."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -165,6 +165,7 @@ addopts = [
     "--cov=src/topicgpt",
     "--cov-report=term-missing",
     "--cov-report=xml",
+    "--cov-fail-under=80",
 ]
 testpaths = ["tests"]
 markers = [
@@ -178,6 +179,11 @@ filterwarnings = [
     "ignore::DeprecationWarning:hdbscan.*",
     "ignore::DeprecationWarning:gensim.*",
 ]
+
+[tool.bandit]
+# B101: `assert` is used for mypy-style type narrowing — safe in our codebase.
+skips = ["B101"]
+exclude_dirs = ["legacy", "tests"]
 
 [tool.coverage.run]
 source = ["src/topicgpt"]

@@ -53,9 +53,7 @@ def fit(
     embedding_model: Annotated[
         str, typer.Option(help="OpenAI embedding model.")
     ] = "text-embedding-3-large",
-    embedding_dim: Annotated[
-        int | None, typer.Option(help="Output dim override.")
-    ] = None,
+    embedding_dim: Annotated[int | None, typer.Option(help="Output dim override.")] = None,
 ) -> None:
     """Train a TopicModel and persist it to disk."""
     docs = _read_lines(input_file)

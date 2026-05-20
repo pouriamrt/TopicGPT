@@ -153,9 +153,7 @@ def _dendrogram_figure(linkage_matrix: np.ndarray, *, labels: list[str]) -> go.F
         fig.add_trace(go.Scatter(x=[x1, x1], y=[y1, dist], mode="lines", showlegend=False))
         fig.add_trace(go.Scatter(x=[x2, x2], y=[y2, dist], mode="lines", showlegend=False))
         # Horizontal connector.
-        fig.add_trace(
-            go.Scatter(x=[x1, x2], y=[dist, dist], mode="lines", showlegend=False)
-        )
+        fig.add_trace(go.Scatter(x=[x1, x2], y=[dist, dist], mode="lines", showlegend=False))
 
     fig.update_layout(
         xaxis={"tickmode": "array", "tickvals": list(range(n_leaves)), "ticktext": labels},

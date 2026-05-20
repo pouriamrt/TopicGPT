@@ -174,9 +174,7 @@ def test_hierarchical_topics_shape(model: TopicModel, documents: list[str]) -> N
 
 
 @pytest.mark.integration
-def test_save_load_round_trip(
-    model: TopicModel, documents: list[str], tmp_path: Path
-) -> None:
+def test_save_load_round_trip(model: TopicModel, documents: list[str], tmp_path: Path) -> None:
     model.fit(documents)
     out = tmp_path / "model"
     model.save(out)
@@ -218,9 +216,7 @@ def test_topic_model_implements_embedder_protocol_check() -> None:
 
 
 @pytest.mark.integration
-def test_llm_representer_is_run_when_supplied(
-    model: TopicModel, documents: list[str]
-) -> None:
+def test_llm_representer_is_run_when_supplied(model: TopicModel, documents: list[str]) -> None:
     """A non-KeyBERT representer should also be invoked, producing labels."""
     llm = MagicMock()
     llm.name = "llm"

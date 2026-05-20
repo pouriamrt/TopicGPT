@@ -14,8 +14,7 @@ def _blobs(n: int = 60, d: int = 16, seed: int = 0) -> np.ndarray:
     rng = np.random.default_rng(seed)
     centers = rng.standard_normal((3, d)).astype(np.float32) * 5
     blocks = [
-        centers[c] + 0.3 * rng.standard_normal((n // 3, d)).astype(np.float32)
-        for c in range(3)
+        centers[c] + 0.3 * rng.standard_normal((n // 3, d)).astype(np.float32) for c in range(3)
     ]
     return np.vstack(blocks).astype(np.float32)
 

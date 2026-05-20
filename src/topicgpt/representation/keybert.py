@@ -104,9 +104,7 @@ class KeyBERTRepresenter:
             best_value = -np.inf
             for cand in remaining:
                 relevance = scores[pool[cand]]
-                redundancy = (
-                    float(np.max(sim[cand, selected_local])) if selected_local else 0.0
-                )
+                redundancy = float(np.max(sim[cand, selected_local])) if selected_local else 0.0
                 value = lam * relevance - (1 - lam) * redundancy
                 if value > best_value:
                     best_value = value

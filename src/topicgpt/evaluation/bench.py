@@ -32,9 +32,7 @@ class BenchResult:
 
     def __str__(self) -> str:
         """Pretty single-line summary."""
-        return ", ".join(
-            f"{k}={self.metrics[k]:+.4f}±{self.stds[k]:.4f}" for k in self.metrics
-        )
+        return ", ".join(f"{k}={self.metrics[k]:+.4f}±{self.stds[k]:.4f}" for k in self.metrics)
 
 
 def run_bench(

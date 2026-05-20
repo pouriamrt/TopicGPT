@@ -213,9 +213,7 @@ class TopicModel:
             joblib.dump(self.reducer, path / "reducer.joblib")
             joblib.dump(self.clusterer, path / "clusterer.joblib")
             joblib.dump(self._topics, path / "topics.joblib")
-            (path / "documents.json").write_text(
-                json.dumps(self._documents), encoding="utf-8"
-            )
+            (path / "documents.json").write_text(json.dumps(self._documents), encoding="utf-8")
             (path / "meta.json").write_text(
                 json.dumps({"embedder_model": self.embedder.model_name}),
                 encoding="utf-8",

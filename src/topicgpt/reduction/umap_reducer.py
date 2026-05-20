@@ -36,8 +36,7 @@ class UMAPReducer:
             raise ReductionError(f"Expected 2D embeddings, got shape {X.shape}")
         if X.shape[0] < max(self.config.n_neighbors, self.config.n_components + 1):
             raise ReductionError(
-                f"Too few rows ({X.shape[0]}) for UMAP with "
-                f"n_neighbors={self.config.n_neighbors}"
+                f"Too few rows ({X.shape[0]}) for UMAP with n_neighbors={self.config.n_neighbors}"
             )
         import umap
 

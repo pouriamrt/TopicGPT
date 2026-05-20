@@ -54,7 +54,7 @@ from topicgpt.representation import (
 from topicgpt.topic import OUTLIER_ID, Topic, make_topic
 from topicgpt.vectorization import CosineSimilarityScorer, CTFIDFVectorizer, TopicVectorizer
 
-__version__ = "1.0.0a0"
+__version__ = "1.0.0rc1"
 
 __all__ = [
     "OUTLIER_ID",

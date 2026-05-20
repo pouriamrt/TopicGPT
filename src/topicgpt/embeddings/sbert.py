@@ -72,9 +72,7 @@ class SBERTEmbedder:
             try:
                 from sentence_transformers import SentenceTransformer
             except ImportError as e:  # pragma: no cover - guarded by dependency
-                raise EmbeddingError(
-                    "sentence-transformers is required for SBERTEmbedder."
-                ) from e
+                raise EmbeddingError("sentence-transformers is required for SBERTEmbedder.") from e
             device = None if self.config.device == "auto" else self.config.device
             _LOG.info("Loading SentenceTransformer model: %s", self.config.model)
             self._model = SentenceTransformer(self.config.model, device=device)
