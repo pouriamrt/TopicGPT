@@ -10,7 +10,7 @@ hierarchy.
 
 from __future__ import annotations
 
-from topicgpt import evaluation
+from topicgpt import evaluation, visualize
 from topicgpt.clustering import (
     AgglomerativeClusterer,
     Clusterer,
@@ -101,4 +101,5 @@ __all__ = [
     "__version__",
     "evaluation",
     "make_topic",
+    "visualize",
 ]
