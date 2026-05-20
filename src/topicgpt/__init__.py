@@ -41,6 +41,7 @@ from topicgpt.exceptions import (
     TopicGPTError,
     VectorizationError,
 )
+from topicgpt.pipeline import TopicModel
 from topicgpt.reduction import DimReducer, PCAReducer, UMAPReducer
 from topicgpt.representation import (
     KeyBERTRepresenter,
@@ -91,6 +92,7 @@ __all__ = [
     "TopicCandidate",
     "TopicGPTError",
     "TopicLabel",
+    "TopicModel",
     "TopicVectorizer",
     "UMAPConfig",
     "UMAPReducer",

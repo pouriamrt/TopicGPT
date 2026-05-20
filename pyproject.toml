@@ -147,6 +147,8 @@ module = [
     "plotly.*",
     "joblib.*",
     "hishel.*",
+    "pandas.*",
+    "scipy.*",
 ]
 ignore_missing_imports = true
 
