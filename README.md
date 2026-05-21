@@ -4,7 +4,7 @@
 > `embed → reduce → cluster → vectorize → represent → label`
 
 [![python](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/)
-[![status](https://img.shields.io/badge/status-1.0.0rc1-orange)](./PLAN.md)
+[![status](https://img.shields.io/badge/status-1.0.0rc1-orange)](#)
 [![tests](https://img.shields.io/badge/tests-140%20passing-brightgreen)](#development)
 [![coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](#development)
 [![mypy](https://img.shields.io/badge/mypy-strict-blue)](#development)
@@ -125,16 +125,35 @@ topicgpt viz  ./model --out chart.html --kind barchart
 
 ## What's inside
 
-```
-documents
-   │
-   ▼  Embedder         (OpenAI / SBERT — pluggable)
-   ▼  DimReducer       (UMAP / PCA)
-   ▼  Clusterer        (HDBSCAN / KMeans / Agglomerative)
-   ▼  TopicVectorizer  (c-TF-IDF / CosineSimilarityScorer)
-   ▼  Representer[]    (KeyBERT-MMR → LLM-structured-output)
-   │
-   ▼  tuple[Topic, ...]   (frozen dataclass; label, description, keywords, scores)
+```mermaid
+flowchart TB
+    docs[("📄 documents")]:::input
+    emb["Embedder<br/><sub>OpenAI · SBERT</sub>"]:::stage
+    red["DimReducer<br/><sub>UMAP · PCA</sub>"]:::stage
+    clu["Clusterer<br/><sub>HDBSCAN · KMeans · Agglomerative</sub>"]:::stage
+    vec["TopicVectorizer<br/><sub>c-TF-IDF · CosineSimilarityScorer</sub>"]:::stage
+    rep["Representer[ ]<br/><sub>KeyBERT-MMR → LLM (structured outputs)</sub>"]:::stage
+    out[("🏷️ tuple[Topic, ...]<br/><sub>label · description · keywords · scores</sub>")]:::output
+
+    docs --> emb --> red --> clu --> vec --> rep --> out
+
+    classDef input  fill:#0f172a,stroke:#94a3b8,color:#f8fafc;
+    classDef stage  fill:#1e293b,stroke:#38bdf8,color:#e2e8f0,rx:8,ry:8;
+    classDef output fill:#064e3b,stroke:#34d399,color:#ecfdf5;
+
+    subgraph eval [" Evaluation "]
+        npmi["NPMI / UMass"]
+        div["proportion-unique<br/>inverted RBO"]
+        bench["multi-seed bench"]
+    end
+    subgraph viz [" Visualisation "]
+        bar["barchart"]
+        scat["scatter"]
+        tree["hierarchy"]
+        heat["heatmap"]
+    end
+    out -.-> eval
+    out -.-> viz
 ```
 
 Every stage is a Protocol — write your own and pass it in.
@@ -193,8 +212,6 @@ export TOPICGPT_REQUEST_TIMEOUT_S=60
 ---
 
 ## Migrating from 0.0.6
-
-See [MIGRATION.md](./MIGRATION.md) for the full mapping. Quick version:
 
 | 0.0.6 | 1.0 |
 |---|---|

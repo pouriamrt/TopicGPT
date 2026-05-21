@@ -3,9 +3,10 @@
 Pipeline stages:
     documents → embed → reduce → cluster → vectorize → represent → label
 
-The public surface grows phase by phase per PLAN.md. Phase 2 exports the
-configuration models, the immutable :class:`Topic`, and the exception
-hierarchy.
+Public exports: configuration models, immutable :class:`Topic`,
+exception hierarchy, embedder/reducer/clusterer/vectorizer/representer
+protocols and concretes, :class:`TopicModel` pipeline, and the
+:mod:`topicgpt.evaluation` / :mod:`topicgpt.visualize` subpackages.
 """
 
 from __future__ import annotations
